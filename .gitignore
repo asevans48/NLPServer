@@ -2,3 +2,4 @@ venv
 .idea
 .project
 target
+spacy>=2.1
