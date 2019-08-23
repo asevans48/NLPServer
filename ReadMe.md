@@ -11,6 +11,19 @@ Uses cases include:
 - Reducing load times for projects requiring model data
 - NLP tasks in production
 
+## Requirements
+
+This project uses Celery to run processes asynchronously. Asyncio forms the bases of the http
+server.
+
+The requirements include:
+- celery
+- aiohttp
+
+## Starting the Appliation and Server
+
+Since processing runs in celery, you need to start celery first and then the http server.
+
 ## License
 
 Copyright 2019- Andrew S Evans
