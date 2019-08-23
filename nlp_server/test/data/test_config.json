@@ -1,0 +1,4 @@
+{
+  "use_gpu": false,
+  "default_model": "en_core_web_sm"
+}

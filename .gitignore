@@ -3,3 +3,4 @@ venv
 .project
 target
 spacy>=2.1
+python-json-config>=1.2

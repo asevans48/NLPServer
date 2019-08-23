@@ -1,3 +1,7 @@
 aiohttp
+docopt>=0.6
 cchardet
 aiodns
+spacy>2.0
+cupy-cuda101
+python-json-config>=1.2
