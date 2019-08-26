@@ -1,4 +1,11 @@
 {
   "use_gpu": false,
-  "default_model": "en_core_web_sm"
+  "default_model": "en_core_web_sm",
+  "sent_tokenizer_path": "tokenizers/punkt/english.pickle",
+  "topic_segementation": {
+    "k": 10,
+    "w": 20,
+    "stopwords": "english",
+    "cutoff_policy": "HC"
+  }
 }
