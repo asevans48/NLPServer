@@ -16,6 +16,4 @@ from celery import Celery
 
 if __name__ == "__main__":
     app = Celery('nlp_server')
-    app.register_task(get_topics)
-    app.register_task(get_entities)
     app.worker_main()

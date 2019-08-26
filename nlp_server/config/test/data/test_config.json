@@ -1,6 +1,6 @@
 {
   "use_gpu": false,
-  "default_model": "en_core_web_sm",
+  "ner_model": "en_core_web_sm",
   "sent_tokenizer_path": "tokenizers/punkt/english.pickle",
   "topic_segementation": {
     "k": 10,
