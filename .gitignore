@@ -3,4 +3,5 @@ venv
 .project
 target
 spacy>=2.1
+.pytest_cache
 python-json-config>=1.2

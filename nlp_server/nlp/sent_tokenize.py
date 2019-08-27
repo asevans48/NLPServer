@@ -6,6 +6,8 @@ Sentence tokenization
 
 import nltk
 
+from pymemcache.client import base
+
 
 class SentenceTokenizer:
     """

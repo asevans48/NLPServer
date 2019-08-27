@@ -4,8 +4,12 @@ Topic tiling task
 @author Andrew Evans
 """
 
-import celery
+import json
 
+import celery
+from nltk.corpus import stopwords
+
+from nlp_server.cache import cache_ops
 from nlp_server.nlp.text_segmentation import TopicTokenizer
 
 
@@ -13,26 +17,7 @@ class TopicTilerTask(celery.Task):
     """
     Topic Tiler Task
     """
-    _config = None
     _tokenizer = None
-
-    @property
-    def config(self):
-        """
-        Obtain the config
-
-        :return:    The config dictionary
-        """
-        return self._config
-
-    @config.setter
-    def config(self, config):
-        """
-        Set the config
-
-        :param config:  The config
-        """
-        self._config = config
 
     @property
     def tokenizer(self):
@@ -41,13 +26,17 @@ class TopicTilerTask(celery.Task):
 
         :return:    The tokenizer
         """
+        config = cache_ops.get_memcache()
         if self._tokenizer is None:
-            width = self._config.w
-            k_size = self._config.k
-            stopwords = self._config.stopwords
-            cutoff_policy = self._config.cutoff_policy
+            cfg_str = config.get('topic_tiler_config')
+            cfg = dict(json.loads(cfg_str))
+            width = int(cfg.get('w', 20))
+            k_size = int(cfg.get('k', 10))
+            stop_words = cfg.get('stopwords', 'english')
+            stop_words = stopwords.words(stop_words)
+            cutoff_policy = cfg.get('cutoff_policy', 'HC')
             self._tokenizer = TopicTokenizer(
-                cutoff_policy, stopwords, width, k_size)
+                cutoff_policy, stop_words, width, k_size)
 
     def run(self, text, config):
         """

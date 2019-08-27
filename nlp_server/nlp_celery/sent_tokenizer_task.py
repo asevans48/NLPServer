@@ -4,8 +4,11 @@ Sentence tokenization
 @author Andrew Evans
 """
 
+import json
+
 import celery
 
+from nlp_server.cache import cache_ops
 from nlp_server.nlp.sent_tokenize import SentenceTokenizer
 
 
@@ -13,25 +16,7 @@ class SentTokenizerTask(celery.Task):
     """
     Sent tokenizer task
     """
-    _config = None
     _tokenizer = None
-
-    @property
-    def config(self):
-        """
-        Property getter for config
-        """
-        return self._config
-
-    @config.setter
-    def config(self, config):
-        """
-        Setter for config.
-
-        :param config:  configuration class
-        :return:    The config
-        """
-        self._config = config
 
     @property
     def tokenizer(self):
@@ -39,9 +24,12 @@ class SentTokenizerTask(celery.Task):
         Tokenizer getter
         :return:    The sentence tokenizer
         """
-        if self._tokenizer is None and self._config is not None:
-            self._tokenizer = SentenceTokenizer(
-                self._config.sent_tokenizer_path)
+        config = cache_ops.get_memcache()
+        if self._tokenizer is None:
+            cfg_str = config.get('sent_tokenizer_config')
+            cfg = dict(json.loads(cfg_str))
+            tok_path = cfg.get('sent_tokenizer_path')
+            self._tokenizer = SentenceTokenizer(tok_path)
         return self._tokenizer
 
     def run(self, text, config):

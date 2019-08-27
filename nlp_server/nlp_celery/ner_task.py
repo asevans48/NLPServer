@@ -4,35 +4,19 @@ The NER task.
 @author Andrew Evans
 """
 
+import json
+
 import celery
 
 from nlp_server.nlp.named_entity_recognition import NERModel
+from nlp_server.cache import cache_ops
 
 
 class NERTask(celery.Task):
     """
     NER task for celery
     """
-    _config = None
     _ner = None
-
-    @property
-    def config(self):
-        """
-        Obtain the config
-
-        :return:    The config dictionary
-        """
-        return self._config
-
-    @config.setter
-    def config(self, config):
-        """
-        Set the config
-
-        :param config:  The config
-        """
-        self._config = config
 
     @property
     def ner(self):
@@ -41,10 +25,14 @@ class NERTask(celery.Task):
 
         :return:    The tokenizer
         """
+        client = cache_ops.get_memcache()
         if self._ner is None:
-            load_gpu = self._config.use_gpu
-            model_type = self._config.model_type
-            self._ner = NERModel(model_type, load_gpu)
+            config_str = client.get('ner_config')
+            if config_str:
+                config = dict(json.loads(config_str))
+                load_gpu = config.get('use_gpu')
+                model_type = config.get('model_type')
+                self._ner = NERModel(model_type, load_gpu)
 
     def run(self, text, entity_types, config):
         """
@@ -56,8 +44,6 @@ class NERTask(celery.Task):
         :return:    A dictionary containing the results separated by entities
         """
         entities = {}
-        if self.config is None:
-            self.config = config
         self.ner.parse_text(text)
         for entity in entity_types:
             if entity == "PERSON":
