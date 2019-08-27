@@ -42,7 +42,7 @@ class NERTask(celery.Task):
         :return:    The tokenizer
         """
         if self._ner is None:
-            load_gpu = self._config.is_gpu
+            load_gpu = self._config.use_gpu
             model_type = self._config.model_type
             self._ner = NERModel(model_type, load_gpu)
 

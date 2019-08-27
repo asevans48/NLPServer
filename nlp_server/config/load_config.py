@@ -18,3 +18,7 @@ def load_config(config_path):
     :return:    The configbullder object
     """
     return BUILDER.parse_config(config_path)
+
+
+def get_set_in_memcached():
+    pass
