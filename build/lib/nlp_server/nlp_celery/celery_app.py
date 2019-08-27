@@ -2,8 +2,8 @@
 Celery starting point.
 
 Usage:
-    celery_app.py -c <cfg> | --configpath=<cfg>
-    celery_app.py -h | --help
+    server.py [-c <cfg> | --configpath=<cfg>]
+    server.py -h | --help
 
 Options:
   -c CFG | --configpath=CFG  The path to the configuraiton file
@@ -45,7 +45,6 @@ def setup_app():
     :return:    The celery app
     """
     cfg = get_config()
-    print(cfg)
     backend = cfg['backend']
     broker = cfg['broker']
     app = Celery('nlp_server', broker=broker, backend=backend)
@@ -62,6 +61,7 @@ def setup_app():
     if cfg.get('worker_prefetch_multiplier'):
         app.conf.worker_prefetch_multiplier = int(
             cfg.get('worker_prefetch_multiplier'))
+
     return app
 
 
@@ -97,7 +97,7 @@ if __name__ == "__main__":
     CLIENT = cache_ops.get_memcache()
     set_config(DOC, CLIENT)
 
-    APP.register_task(NERTask)
-    APP.register_task(SentenceTokenizer)
-    APP.register_task(TopicTokenizer)
-    APP.worker_main()
+    #APP.register_task(NERTask)
+    #APP.register_task(SentenceTokenizer)
+    #APP.register_task(TopicTokenizer)
+    #APP.worker_main()

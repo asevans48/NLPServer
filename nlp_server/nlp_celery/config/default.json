@@ -1,0 +1,4 @@
+{
+  "broker": "pyamqp://",
+  "backend": "rpc://"
+}
