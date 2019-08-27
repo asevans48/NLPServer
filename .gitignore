@@ -1,6 +1,7 @@
 venv
 .idea
 .project
+build
 target
 spacy>=2.1
 .pytest_cache
