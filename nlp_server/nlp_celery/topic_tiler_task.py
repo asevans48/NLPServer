@@ -9,31 +9,54 @@ import celery
 from nlp_server.nlp.text_segmentation import TopicTokenizer
 
 
-class TopicTilerTask(celery.task):
+class TopicTilerTask(celery.Task):
+    """
+    Topic Tiler Task
+    """
+    _config = None
+    _tokenizer = None
 
-    def __init__(self, k, w, stopwords, cutoff_policy):
+    @property
+    def config(self):
         """
-        Constructor
+        Obtain the config
 
-        :param k:   Size of hte block for comparison
-        :param w:   Pseudosentence width
-        :param stopwords:   Stopword list
-        :param cutoff_policy:   Algorithm for text boundaries
+        :return:    The config dictionary
         """
-        self.__k = k
-        self.__w = w
-        self.__stopwords = stopwords
-        self.__cutoff_policy = cutoff_policy
-        self.__tokenizer = TopicTokenizer(
-            self.__cutoff_policy, self.__stopwords, self.__w, self.__k)
+        return self._config
 
-    def run(self, text, *args, **kwargs):
+    @config.setter
+    def config(self, config):
+        """
+        Set the config
+
+        :param config:  The config
+        """
+        self._config = config
+
+    @property
+    def tokenizer(self):
+        """
+        Get the tokenizer. Set it if it is null.
+
+        :return:    The tokenizer
+        """
+        if self._tokenizer is None:
+            width = self._config.w
+            k_size = self._config.k
+            stopwords = self._config.stopwords
+            cutoff_policy = self._config.cutoff_policy
+            self._tokenizer = TopicTokenizer(
+                cutoff_policy, stopwords, width, k_size)
+
+    def run(self, text, config):
         """
         Obtain potential topics from the text.
 
         :param text:    The text to segment
-        :param args:    Task arguments
-        :param kwargs:  Task kwargs
+        :param config:  The configuration dictionary
         :return:    A list of segmented text topics
         """
-        return self.__tokenizer.get_boundaries(text)
+        if self.config is None:
+            self.config = config
+        return self._tokenizer.get_boundaries(text)

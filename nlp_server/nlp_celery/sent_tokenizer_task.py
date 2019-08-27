@@ -13,23 +13,45 @@ class SentTokenizerTask(celery.Task):
     """
     Sent tokenizer task
     """
+    _config = None
+    _tokenizer = None
 
-    def __init__(self, sent_model):
+    @property
+    def config(self):
         """
-        Constructor
-
-        :param sent_model:  The sentence tokenization model
+        Property getter for config
         """
-        self.__sent_model = sent_model
-        self.__tokenizer = SentenceTokenizer(self.__sent_model)
+        return self._config
 
-    def run(self, text, *args, **kwargs):
+    @config.setter
+    def config(self, config):
+        """
+        Setter for config.
+
+        :param config:  configuration class
+        :return:    The config
+        """
+        self._config = config
+
+    @property
+    def tokenizer(self):
+        """
+        Tokenizer getter
+        :return:    The sentence tokenizer
+        """
+        if self._tokenizer is None and self._config is not None:
+            self._tokenizer = SentenceTokenizer(
+                self._config.sent_tokenizer_path)
+        return self._tokenizer
+
+    def run(self, text, config):
         """
         Run the task
 
         :param text:    The text to tokenize
-        :param args:    The application args
-        :param kwargs:  The application kwargs
+        :param config:  The configuration dictionary
         :return:    A list of discovered sentences
         """
-        return self.__tokenizer.tokenize_sentences(text)
+        if self.config is None:
+            self.config = config
+        return self.tokenizer.tokenize_sentences(text)
