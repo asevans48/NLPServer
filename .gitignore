@@ -4,5 +4,6 @@ venv
 build
 target
 spacy>=2.1
+**__pycache__**
 .pytest_cache
 python-json-config>=1.2
