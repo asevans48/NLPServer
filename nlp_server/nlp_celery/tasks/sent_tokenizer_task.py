@@ -16,6 +16,7 @@ class SentTokenizerTask(celery.Task):
     """
     Sent tokenizer task
     """
+    name = 'Sentence Tokenizer'
     _tokenizer = None
 
     @property

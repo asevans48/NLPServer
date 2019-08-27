@@ -17,6 +17,8 @@ class TopicTilerTask(celery.Task):
     """
     Topic Tiler Task
     """
+
+    name = 'Text Tiling Tokenizer'
     _tokenizer = None
 
     @property

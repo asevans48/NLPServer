@@ -16,6 +16,8 @@ class NERTask(celery.Task):
     """
     NER task for celery
     """
+
+    name = 'NER Task'
     _ner = None
 
     @property

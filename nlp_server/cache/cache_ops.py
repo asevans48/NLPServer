@@ -7,6 +7,7 @@ Cache functions
 import os
 
 from pymemcache.client import base
+import redis
 
 
 def get_memcache():
@@ -24,3 +25,27 @@ def get_memcache():
     else:
         port = int(port)
     client = base.Client((host, port))
+
+
+def get_redis():
+    """
+    Get the redis cache client
+
+    :return:    The redis cache client
+    """
+    host = os.environ.get('REDIS_HOST', 'localhost')
+    port = os.environ.get('REDIS_PORT', 6379)
+    password = os.environ.get('REDIS_PASSWORD', None)
+    redis_cli = None
+    if password:
+        redis_cli = redis.Redis(
+            host=host,
+            port=port,
+            password=password
+        )
+    else:
+        redis_cli = redis.Redis(
+            host=host,
+            port=port
+        )
+    return redis_cli

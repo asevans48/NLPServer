@@ -8,3 +8,4 @@ cupy-cuda101
 python-json-config>=1.2
 celery>=4.3
 pymemcache>=2.2
+redis>=3.3

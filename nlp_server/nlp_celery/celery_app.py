@@ -2,15 +2,18 @@
 Celery starting point.
 
 Usage:
+    celery_app.py
     celery_app.py -c <cfg> | --configpath=<cfg>
     celery_app.py -h | --help
 
 Options:
+  -n CONC | --concurrency=CONC  Concurrency Level
   -c CFG | --configpath=CFG  The path to the configuraiton file
   -h --help  Show this help screen
 
 """
 
+import logging
 import json
 import os
 
@@ -19,8 +22,8 @@ from docopt import docopt
 
 from nlp_server.cache import cache_ops
 from nlp_server.nlp_celery.tasks.ner_task import NERTask
-from nlp_server.nlp_celery.tasks.sent_tokenizer_task import SentenceTokenizer
-from nlp_server.nlp_celery.tasks.topic_tiler_task import TopicTokenizer
+from nlp_server.nlp_celery.tasks.sent_tokenizer_task import SentTokenizerTask
+from nlp_server.nlp_celery.tasks.topic_tiler_task import TopicTilerTask
 
 
 def get_config():
@@ -45,7 +48,6 @@ def setup_app():
     :return:    The celery app
     """
     cfg = get_config()
-    print(cfg)
     backend = cfg['backend']
     broker = cfg['broker']
     app = Celery('nlp_server', broker=broker, backend=backend)
@@ -91,13 +93,23 @@ def set_config(doc, client):
 
 
 if __name__ == "__main__":
+    logging.info("Setting up Application")
     APP = setup_app()
 
     DOC = docopt(__doc__, version='NLP Server 0.1')
-    CLIENT = cache_ops.get_memcache()
+    CLIENT = cache_ops.get_redis()
+    logging.info('Setting Config')
     set_config(DOC, CLIENT)
-
-    APP.register_task(NERTask)
-    APP.register_task(SentenceTokenizer)
-    APP.register_task(TopicTokenizer)
-    APP.worker_main()
+    logging.info("Registering Tasks")
+    APP.tasks.register(NERTask())
+    APP.tasks.register(SentTokenizerTask())
+    APP.tasks.register(TopicTilerTask())
+    logging.info("Starting Celery")
+    argv = [
+        'worker'
+    ]
+    conc_level = DOC.get('concurrency', 1)
+    conc_level = "--concurrency={}".format(conc_level)
+    argv.append(conc_level)
+    print("ATTEMPTING RUN")
+    APP.worker_main(argv)
