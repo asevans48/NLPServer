@@ -1,8 +1,12 @@
 {
-  "use_gpu": false,
-  "ner_model": "en_core_web_sm",
-  "sent_tokenizer_path": "tokenizers/punkt/english.pickle",
-  "topic_segementation": {
+  "ner": {
+    "use_gpu": false,
+    "ner_model": "en_core_web_sm"
+  },
+  "sent_tokenizer":{
+    "sent_tokenizer_path": "tokenizers/punkt/english.pickle"
+  },
+  "topic_segmentation": {
     "k": 10,
     "w": 20,
     "stopwords": "english",
