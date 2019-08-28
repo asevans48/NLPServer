@@ -25,7 +25,7 @@ class SentTokenizerTask(celery.Task):
         Tokenizer getter
         :return:    The sentence tokenizer
         """
-        config = cache_ops.get_memcache()
+        config = cache_ops.get_redis()
         if self._tokenizer is None:
             cfg_str = config.get('sent_tokenizer_config')
             cfg = dict(json.loads(cfg_str))
@@ -33,14 +33,11 @@ class SentTokenizerTask(celery.Task):
             self._tokenizer = SentenceTokenizer(tok_path)
         return self._tokenizer
 
-    def run(self, text, config):
+    def run(self, text):
         """
         Run the task
 
         :param text:    The text to tokenize
-        :param config:  The configuration dictionary
         :return:    A list of discovered sentences
         """
-        if self.config is None:
-            self.config = config
         return self.tokenizer.tokenize_sentences(text)

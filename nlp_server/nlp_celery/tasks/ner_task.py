@@ -17,7 +17,7 @@ class NERTask(celery.Task):
     NER task for celery
     """
 
-    name = 'NER Task'
+    name = 'NERTask'
     _ner = None
 
     @property
@@ -27,29 +27,29 @@ class NERTask(celery.Task):
 
         :return:    The tokenizer
         """
-        client = cache_ops.get_memcache()
+        client = cache_ops.get_redis()
         if self._ner is None:
             config_str = client.get('ner_config')
             if config_str:
                 config = dict(json.loads(config_str))
                 load_gpu = config.get('use_gpu')
-                model_type = config.get('model_type')
+                model_type = config.get('ner_model')
                 self._ner = NERModel(model_type, load_gpu)
+        return self._ner
 
-    def run(self, text, entity_types, config):
+    def run(self, text, entity_types):
         """
         Run the task
 
         :param text:    The text to recognize entities in
         :param entity_types:    The list of entity types to find
-        :param config:  The configuration
         :return:    A dictionary containing the results separated by entities
         """
         entities = {}
         self.ner.parse_text(text)
         for entity in entity_types:
             if entity == "PERSON":
-                people = self.ner.get_people(text)
+                people = self.ner.get_people()
                 entities['people'] = people
             elif entity == "LOCATION":
                 locations = self.ner.get_language()

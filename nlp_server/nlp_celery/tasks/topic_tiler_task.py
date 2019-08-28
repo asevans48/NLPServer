@@ -28,7 +28,7 @@ class TopicTilerTask(celery.Task):
 
         :return:    The tokenizer
         """
-        config = cache_ops.get_memcache()
+        config = cache_ops.get_redis()
         if self._tokenizer is None:
             cfg_str = config.get('topic_tiler_config')
             cfg = dict(json.loads(cfg_str))
@@ -39,15 +39,13 @@ class TopicTilerTask(celery.Task):
             cutoff_policy = cfg.get('cutoff_policy', 'HC')
             self._tokenizer = TopicTokenizer(
                 cutoff_policy, stop_words, width, k_size)
+        return self._tokenizer
 
-    def run(self, text, config):
+    def run(self, text):
         """
         Obtain potential topics from the text.
 
         :param text:    The text to segment
-        :param config:  The configuration dictionary
         :return:    A list of segmented text topics
         """
-        if self.config is None:
-            self.config = config
-        return self._tokenizer.get_boundaries(text)
+        return self.tokenizer.get_boundaries(text)
