@@ -23,5 +23,6 @@ def test_ner_run():
     txt = "My name is Joe. I am a person."
     ner_cls = NERTask()
     result = ner_cls.run(txt, ["PERSON"])
-    assert 'people' in result.keys()
-    assert 'Joe' in result.get('people')
+    assert len(result > 0)
+    assert 'people' in result[0].keys()
+    assert 'Joe' in result[0].get('people')

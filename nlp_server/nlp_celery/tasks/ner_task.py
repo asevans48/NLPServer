@@ -30,20 +30,22 @@ class NERTask(celery.Task):
         client = cache_ops.get_redis()
         if self._ner is None:
             config_str = client.get('ner_config')
+            print(config_str)
             if config_str:
                 config = dict(json.loads(config_str))
-                load_gpu = config.get('use_gpu')
-                model_type = config.get('ner_model')
+                load_gpu = config.get('use_gpu', False)
+                model_type = config.get('ner_model', 'en_core_web_sm')
                 self._ner = NERModel(model_type, load_gpu)
+            else:
+                self._ner = NERModel('en_core_web_sm', False)
         return self._ner
 
-    def run(self, text, entity_types):
+    def get_entities(self, text, entity_types):
         """
-        Run the task
-
-        :param text:    The text to recognize entities in
-        :param entity_types:    The list of entity types to find
-        :return:    A dictionary containing the results separated by entities
+        Get entities for a given text
+        :param text:  The text string
+        :param entity_types:    Entity types to recognize
+        :return: Discovered entities dict
         """
         entities = {}
         self.ner.parse_text(text)
@@ -73,3 +75,21 @@ class NERTask(celery.Task):
                 products = self.ner.get_product()
                 entities['products'] = products
         return entities
+
+    def run(self, text, entity_types):
+        """
+        Run the task
+
+        :param text:    The text to recognize entities in
+        :param entity_types:    The list of entity types to find
+        :return:    A list of parsed entities
+        """
+        rval = []
+        if type(text) is str:
+            entities = self.get_entities(text, entity_types)
+            rval.append(entities)
+        elif type(text) is list:
+            for text_str in text:
+                entities = self.get_entities(text_str, entity_types)
+                rval.append(entities)
+        return rval

@@ -38,4 +38,5 @@ def test_tokenize_topics():
     and what happens in reality.
     """
     topics = tiler.run(txt)
-    assert(len(topics) > 0)
+    assert(len(topics) == 1)
+    assert(len(topics[0]) > 0)

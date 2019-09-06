@@ -23,4 +23,5 @@ def test_run_tokenizer():
     tok = SentTokenizerTask()
     txt = """This is the first sentence. This is the second!"""
     sents = tok.run(txt)
-    assert(len(sents) == 2)
+    assert(len(sents) == 1)
+    assert(len(sents[0]) == 2)

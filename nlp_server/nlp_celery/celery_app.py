@@ -49,6 +49,7 @@ def setup_app():
     """
     cfg = get_config()
     backend = cfg['backend']
+    print(backend)
     broker = cfg['broker']
     app = Celery('nlp_server', broker=broker, backend=backend)
 
@@ -78,7 +79,6 @@ def set_config(doc, client):
         cfg_path = doc.get('CONFIGPATH')
         with open(cfg_path, 'r') as fp:
             cfg = dict(json.load(fp))
-
         if cfg and cfg.get('ner'):
             ner_jsn = json.dumps(cfg.get('ner'))
             client.set('ner_config', ner_jsn)
@@ -104,9 +104,12 @@ if __name__ == "__main__":
     APP.tasks.register(NERTask())
     APP.tasks.register(SentTokenizerTask())
     APP.tasks.register(TopicTilerTask())
+    print(APP.tasks)
     logging.info("Starting Celery")
     argv = [
-        'worker'
+        'worker',
+        '--pool=gevent',
+        '--loglevel=INFO'
     ]
     conc_level = DOC.get('concurrency', 1)
     conc_level = "--concurrency={}".format(conc_level)

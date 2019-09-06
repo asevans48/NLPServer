@@ -30,7 +30,7 @@ class TopicTilerTask(celery.Task):
         """
         config = cache_ops.get_redis()
         if self._tokenizer is None:
-            cfg_str = config.get('topic_tiler_config')
+            cfg_str = config.get('topic_tiler_config', '{}')
             cfg = dict(json.loads(cfg_str))
             width = int(cfg.get('w', 20))
             k_size = int(cfg.get('k', 10))
@@ -41,11 +41,27 @@ class TopicTilerTask(celery.Task):
                 cutoff_policy, stop_words, width, k_size)
         return self._tokenizer
 
+    def get_topic_segements(self, text):
+        """
+        Obtain a list of topic segments
+        :param text:    The text to segment
+        :return:    A list of segmented text
+        """
+        return self.tokenizer.get_boundaries(text)
+
     def run(self, text):
         """
         Obtain potential topics from the text.
 
-        :param text:    The text to segment
-        :return:    A list of segmented text topics
+        :param text:    The text to segment or list of texts
+        :return:    Lists of segmented text topics
         """
-        return self.tokenizer.get_boundaries(text)
+        rval = []
+        if type(text) is str:
+            segments = self.get_topic_segements(text)
+            rval.append(segments)
+        elif type(text) is list:
+            for text_str in text:
+                segments = self.get_topic_segements(text_str)
+                rval.append(segments)
+        return rval
