@@ -84,8 +84,9 @@ class NERTask(celery.Task):
         :param entity_types:    The list of entity types to find
         :return:    A list of parsed entities
         """
-        rval = []
+        odict = {}
         try:
+            rval = []
             if type(text) is str:
                 entities = self.get_entities(text, entity_types)
                 rval.append(entities)
@@ -93,6 +94,9 @@ class NERTask(celery.Task):
                 for text_str in text:
                     entities = self.get_entities(text_str, entity_types)
                     rval.append(entities)
+            odict['entities'] = rval
+            odict['err'] = False
         except Exception as e:
             traceback.print_exc()
-        return rval
+            odict['err'] = True
+        return odict

@@ -64,8 +64,9 @@ class TopicTilerTask(celery.Task):
         :param text:    The text to segment or list of texts
         :return:    Lists of segmented text topics
         """
-        rval = []
+        odict = {}
         try:
+            rval = []
             if type(text) is str:
                 segments = self.get_topic_segements(text)
                 rval.append(segments)
@@ -73,6 +74,9 @@ class TopicTilerTask(celery.Task):
                 for text_str in text:
                     segments = self.get_topic_segements(text_str)
                     rval.append(segments)
+            odict['segments'] = rval
+            odict['err'] = False
         except Exception as e:
             traceback.print_exc()
-        return rval
+            odict['err'] = True
+        return odict

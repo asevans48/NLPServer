@@ -38,6 +38,9 @@ def test_tokenize_topics():
     and what happens in reality.
     """
     topics = tiler.run(txt)
+    assert(type(topics) is dict)
+    assert(topics.get('err', True) is False)
+    assert(topics.get('segments', None) is not None)
     print(topics)
-    assert(len(topics) == 1)
-    assert(len(topics[0]) > 0)
+    assert(len(topics['segments']) == 1)
+    assert(len(topics['segments'][0]) > 0)

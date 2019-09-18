@@ -54,8 +54,9 @@ class SentTokenizerTask(celery.Task):
         :param text:    The text to tokenize or list of texts
         :return:    A list of discovered sentences
         """
-        rval = []
+        odict = {}
         try:
+            rval = []
             if type(text) is str:
                 sents = self.tokenizer.tokenize_sentences(text)
                 rval.append(sents)
@@ -63,6 +64,9 @@ class SentTokenizerTask(celery.Task):
                 for text_str in text:
                     sents = self.tokenizer.tokenize_sentences(text_str)
                     rval.append(sents)
+            odict['sentences'] = rval
+            odict['err'] = False
         except Exception as e:
             traceback.print_exc()
-        return rval
+            odict['err'] = True
+        return odict
