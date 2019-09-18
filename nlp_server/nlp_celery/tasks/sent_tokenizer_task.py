@@ -5,6 +5,8 @@ Sentence tokenization
 """
 
 import json
+import os
+import traceback
 
 import celery
 
@@ -16,7 +18,7 @@ class SentTokenizerTask(celery.Task):
     """
     Sent tokenizer task
     """
-    name = 'Sentence Tokenizer'
+    name = 'SentenceTokenizer'
     _tokenizer = None
 
     @property
@@ -28,9 +30,13 @@ class SentTokenizerTask(celery.Task):
         config = cache_ops.get_redis()
         if self._tokenizer is None:
             cfg_str = config.get('sent_tokenizer_config')
-            cfg = dict(json.loads(cfg_str))
-            tok_path = cfg.get('sent_tokenizer_path')
-            self._tokenizer = SentenceTokenizer(tok_path)
+            if cfg_str:
+                cfg = dict(json.loads(cfg_str))
+                tok_path = cfg.get('sent_tokenizer_path')
+                self._tokenizer = SentenceTokenizer(tok_path)
+            else:
+                tok_path = "nltk:tokenizers/punkt/english.pickle"
+                self._tokenizer = SentenceTokenizer(tok_path)
         return self._tokenizer
 
     def tokenize_text(self, text):
@@ -49,11 +55,14 @@ class SentTokenizerTask(celery.Task):
         :return:    A list of discovered sentences
         """
         rval = []
-        if type(text) is str:
-            sents = self.tokenizer.tokenize_sentences(text)
-            rval.append(sents)
-        elif type(text) is list:
-            for text_str in text:
-                sents = self.tokenizer.tokenize_sentences(text_str)
+        try:
+            if type(text) is str:
+                sents = self.tokenizer.tokenize_sentences(text)
                 rval.append(sents)
+            elif type(text) is list:
+                for text_str in text:
+                    sents = self.tokenizer.tokenize_sentences(text_str)
+                    rval.append(sents)
+        except Exception as e:
+            traceback.print_exc()
         return rval

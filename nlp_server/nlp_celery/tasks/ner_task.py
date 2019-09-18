@@ -5,6 +5,7 @@ The NER task.
 """
 
 import json
+import traceback
 
 import celery
 
@@ -30,7 +31,6 @@ class NERTask(celery.Task):
         client = cache_ops.get_redis()
         if self._ner is None:
             config_str = client.get('ner_config')
-            print(config_str)
             if config_str:
                 config = dict(json.loads(config_str))
                 load_gpu = config.get('use_gpu', False)
@@ -85,11 +85,14 @@ class NERTask(celery.Task):
         :return:    A list of parsed entities
         """
         rval = []
-        if type(text) is str:
-            entities = self.get_entities(text, entity_types)
-            rval.append(entities)
-        elif type(text) is list:
-            for text_str in text:
-                entities = self.get_entities(text_str, entity_types)
+        try:
+            if type(text) is str:
+                entities = self.get_entities(text, entity_types)
                 rval.append(entities)
+            elif type(text) is list:
+                for text_str in text:
+                    entities = self.get_entities(text_str, entity_types)
+                    rval.append(entities)
+        except Exception as e:
+            traceback.print_exc()
         return rval

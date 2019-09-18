@@ -19,6 +19,7 @@ import os
 
 from celery import Celery
 from docopt import docopt
+from kombu import Exchange, Queue
 
 from nlp_server.cache import cache_ops
 from nlp_server.nlp_celery.tasks.ner_task import NERTask
@@ -48,15 +49,31 @@ def setup_app():
     :return:    The celery app
     """
     cfg = get_config()
+    print(cfg)
     backend = cfg['backend']
-    print(backend)
     broker = cfg['broker']
     app = Celery('nlp_server', broker=broker, backend=backend)
+
+    if cfg.get('queues'):
+        queue_list = []
+        for queue in cfg.get('queues'):
+            q = Queue(queue.get('name'), Exchange(queue.get('exchange')), routing_key=queue.get('routing_key'))
+            queue_list.append(q)
+        app.conf.task_queues = tuple(queue_list)
+
+    if cfg.get('routing_key'):
+        app.conf.task_default_routing_key = cfg.get('routing_key')
+
+    if cfg.get('exchange'):
+        app.conf.task_default_exchange = cfg.get('exchange')
+
+    if cfg.get('update'):
+        app.conf.update(cfg.get('update'))
 
     if cfg.get('task_serializer'):
         app.conf.task_serializer = cfg.get('task_serializer')
 
-    if cfg.get('rseult_serializer'):
+    if cfg.get('result_serializer'):
         app.conf.result_serializer = cfg.get('result_serializer')
 
     if cfg.get('accept_content'):
@@ -95,7 +112,6 @@ def set_config(doc, client):
 if __name__ == "__main__":
     logging.info("Setting up Application")
     APP = setup_app()
-
     DOC = docopt(__doc__, version='NLP Server 0.1')
     CLIENT = cache_ops.get_redis()
     logging.info('Setting Config')
@@ -104,13 +120,14 @@ if __name__ == "__main__":
     APP.tasks.register(NERTask())
     APP.tasks.register(SentTokenizerTask())
     APP.tasks.register(TopicTilerTask())
-    print(APP.tasks)
     logging.info("Starting Celery")
+    cfg = get_config()
     argv = [
         'worker',
         '--pool=gevent',
         '--loglevel=INFO'
     ]
+
     conc_level = DOC.get('concurrency', 1)
     conc_level = "--concurrency={}".format(conc_level)
     argv.append(conc_level)

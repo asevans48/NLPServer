@@ -5,6 +5,7 @@ Topic tiling task
 """
 
 import json
+import traceback
 
 import celery
 from nltk.corpus import stopwords
@@ -18,7 +19,7 @@ class TopicTilerTask(celery.Task):
     Topic Tiler Task
     """
 
-    name = 'Text Tiling Tokenizer'
+    name = 'TextTilingTokenizer'
     _tokenizer = None
 
     @property
@@ -30,13 +31,20 @@ class TopicTilerTask(celery.Task):
         """
         config = cache_ops.get_redis()
         if self._tokenizer is None:
-            cfg_str = config.get('topic_tiler_config', '{}')
-            cfg = dict(json.loads(cfg_str))
-            width = int(cfg.get('w', 20))
-            k_size = int(cfg.get('k', 10))
-            stop_words = cfg.get('stopwords', 'english')
-            stop_words = stopwords.words(stop_words)
-            cutoff_policy = cfg.get('cutoff_policy', 'HC')
+            cfg_str = config.get('topic_tiler_config')
+            if cfg_str:
+                cfg = dict(json.loads(cfg_str))
+                width = int(cfg.get('w', 20))
+                k_size = int(cfg.get('k', 10))
+                stop_words = cfg.get('stopwords', 'english')
+                stop_words = stopwords.words(stop_words)
+                cutoff_policy = cfg.get('cutoff_policy', 'HC')
+            else:
+                width = 20
+                k_size = 10
+                stop_words = 'english'
+                stop_words = stopwords.words(stop_words)
+                cutoff_policy = 'HC'
             self._tokenizer = TopicTokenizer(
                 cutoff_policy, stop_words, width, k_size)
         return self._tokenizer
@@ -57,11 +65,14 @@ class TopicTilerTask(celery.Task):
         :return:    Lists of segmented text topics
         """
         rval = []
-        if type(text) is str:
-            segments = self.get_topic_segements(text)
-            rval.append(segments)
-        elif type(text) is list:
-            for text_str in text:
-                segments = self.get_topic_segements(text_str)
+        try:
+            if type(text) is str:
+                segments = self.get_topic_segements(text)
                 rval.append(segments)
+            elif type(text) is list:
+                for text_str in text:
+                    segments = self.get_topic_segements(text_str)
+                    rval.append(segments)
+        except Exception as e:
+            traceback.print_exc()
         return rval

@@ -27,7 +27,7 @@ def test_tokenize_topics():
     If no explicit name is provided the task decorator will generate one
     for you, and this name will be based on 1) the module the task is 
     defined in, and 2) the name of the task function.
-    
+    +
     Example setting explicit name.
     
     The eager mode enabled by the task_always_eager setting is by definition
@@ -38,5 +38,6 @@ def test_tokenize_topics():
     and what happens in reality.
     """
     topics = tiler.run(txt)
+    print(topics)
     assert(len(topics) == 1)
     assert(len(topics[0]) > 0)
