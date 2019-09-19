@@ -55,7 +55,12 @@ class TopicTilerTask(celery.Task):
         :param text:    The text to segment
         :return:    A list of segmented text
         """
-        return self.tokenizer.get_boundaries(text)
+        boundaries = []
+        try:
+            boundaries = self.tokenizer.get_boundaries(text)
+        except Exception as e:
+            traceback.print_exc()
+        return boundaries
 
     def run(self, text):
         """
